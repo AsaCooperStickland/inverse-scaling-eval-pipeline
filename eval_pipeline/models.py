@@ -477,8 +477,10 @@ class GPT3Model(Model):
         response_json = call_api(prompts, self.model_name, api_params).json()
         losses = []
         labels_correct = []
+        answers = []
         labels_predicted = []
         total_logprobs = []
+        all_class_logprobs = []
         choices = response_json["choices"]
 
         prompt_start = 0
@@ -510,10 +512,12 @@ class GPT3Model(Model):
 
             loss = -F.log_softmax(relevant_logprobs, dim=-1)[example.answer_index]
             losses.append(loss.item())
+            all_class_logprobs.append(class_logprobs)
             total_logprob = torch.logsumexp(relevant_logprobs, dim=-1)
             total_logprobs.append(total_logprob.item())
 
             label_correct = int(np.argmax(relevant_logprobs) == example.answer_index)
+            answers.append(example.answer_index)
             labels_correct.append(label_correct)
 
             label_predicted = example.classes[relevant_logprobs.argmax(dim=-1).item()]
@@ -523,8 +527,10 @@ class GPT3Model(Model):
         return {
             "loss": losses,
             "correct": labels_correct,
+            "answers": answers,
             "predicted": labels_predicted,
             "total_logprob": total_logprobs,
+            "class_logprobs": all_class_logprobs,
         }
 
     def _evaluate_logodds(

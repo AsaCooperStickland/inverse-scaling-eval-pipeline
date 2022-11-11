@@ -123,7 +123,7 @@ def plot_classification_loss(
     invert: bool,
     show: bool,
 ):
-    loss_csvs = [f for f in exp_dir.glob("gpt2.csv") if f.name != "data.csv"]
+    loss_csvs = [f for f in exp_dir.glob("*.csv") if f.name != "data.csv"]
     if Path(exp_dir, "data.csv").exists():
         data_df = pd.read_csv(Path(exp_dir, "data.csv"), index_col=0).reset_index(
             drop=True

@@ -94,7 +94,8 @@ def set_up_logging(log_path: Path, logging_level: str):
 
 def load_data(dataset_path: Path, task_type: TaskType) -> Dataset:
     df = load_df(dataset_path)
-    if task_type in ["classification_loss", "classification_acc", "classification"]:
+    if task_type in ["classification_loss", "classification_acc", "classification",
+                     "calibration_error"]:
         dataset = Dataset.classification_from_df(df)
     elif task_type == "numeric":
         dataset = Dataset.numeric_from_df(df)
@@ -129,8 +130,9 @@ def run_model(
     write the results to write_path incrementally."""
     write_path = Path(write_dir, model_name + ".csv")
     # TODO: find a way to avoid having to specify field names ahead of time
-    if task_type in ["classification_loss", "classification_acc", "classification"]:
-        field_names = ["index", "loss", "correct", "predicted", "total_logprob"]
+    if task_type in ["classification_loss", "classification_acc", "classification", "calibration_error"]:
+        field_names = ["index", "loss", "correct", "answers", "predicted", "total_logprob", 
+                       "class_logprobs"]
     elif task_type == "sequence_prob":
         field_names = ["index", "loss"]
     elif task_type == "numeric":

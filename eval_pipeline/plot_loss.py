@@ -10,6 +10,8 @@ from typing import Optional, cast
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from netcal.metrics import ECE
+from scipy.special import softmax
 
 from eval_pipeline.dataset import TaskType
 
@@ -52,7 +54,7 @@ def main():
     else:
         base_results_dir = Path(project_dir, "results")
     exp_dir = Path(base_results_dir, args.exp_dir)
-    if args.task_type.startswith("classification") or args.task_type == "sequence_prob":
+    if args.task_type.startswith("classification") or args.task_type in ["sequence_prob", "calibration_error"]:
         plot_classification_loss(
             exp_dir,
             args.dataset_sizes,
@@ -121,7 +123,7 @@ def plot_classification_loss(
     invert: bool,
     show: bool,
 ):
-    loss_csvs = [f for f in exp_dir.glob("*.csv") if f.name != "data.csv"]
+    loss_csvs = [f for f in exp_dir.glob("gpt2.csv") if f.name != "data.csv"]
     if Path(exp_dir, "data.csv").exists():
         data_df = pd.read_csv(Path(exp_dir, "data.csv"), index_col=0).reset_index(
             drop=True
@@ -144,6 +146,18 @@ def plot_classification_loss(
                 df.loc[:, output_name] = df[output_name].apply(
                     lambda correct: np.abs(correct - 1)
                 )
+    
+    elif task_type == "calibration_error":
+        baseline = None
+        output_name = "correct"
+        n_bins = 10
+        ece = ECE(n_bins)
+        for df in dfs.values():
+            df.loc[:, "class_logprobs"] = df["class_logprobs"].apply(
+                lambda logprobs: softmax(np.array(literal_eval(logprobs)))
+            )
+            ece_output = ece.measure(np.stack(df["class_logprobs"].to_numpy()), df["answers"].to_numpy())
+            df.loc[:, output_name] = ece_output
 
     # NOTE: the default plot type is now loss because that's what we ask for in the submission
     elif task_type == "classification_loss" or task_type == "classification":
@@ -279,7 +293,11 @@ def plot_loss(
         # always show full range of accuracies
         plt.ylim(-0.02, 1.02)
         plt.ylabel("Accuracy")
-        title = "Log plot of accuracy vs model size"
+    elif task_type == "calibration_error":
+        # always show full range of accuracies
+        plt.ylim(-0.02, 1.02)
+        plt.ylabel("ECE")
+        title = "Log plot of ece vs model size"
     elif task_type == "numeric":
         # plt.yscale("log")
         title = "Numeric plot style"
@@ -327,6 +345,7 @@ def parse_args(args) -> argparse.Namespace:
         default="classification",
         choices=[
             "classification",
+            "calibration_error",
             "classification_loss",
             "classification_acc",
             "numeric",

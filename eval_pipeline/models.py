@@ -163,8 +163,10 @@ class HFModel(Model):
         ]
         all_logits, all_tokens = self._get_logits_and_tokens(prompts)
         total_logprobs = []
+        all_class_logprobs = []
         losses = []
         labels_correct = []
+        answers = []
         labels_predicted = []
         prompt_start = 0
         for example in examples:
@@ -193,10 +195,12 @@ class HFModel(Model):
                 )
                 class_logprobs.append(class_logprob.item())  # type: ignore (the sum is never empty so never just 0, always a tensor)
 
+            all_class_logprobs.append(class_logprobs)
             total_logprob = torch.logsumexp(torch.tensor(class_logprobs), dim=-1).item()
             normalised_logprobs = F.log_softmax(torch.tensor(class_logprobs), dim=-1)
             loss = -normalised_logprobs[example.answer_index].item()
             label_correct = int(np.argmax(normalised_logprobs) == example.answer_index)
+            answers.append(example.answer_index)
             total_logprobs.append(total_logprob)
             losses.append(loss)
             labels_correct.append(label_correct)
@@ -210,8 +214,10 @@ class HFModel(Model):
         return {
             "loss": losses,
             "correct": labels_correct,
+            "answers": answers,
             "predicted": labels_predicted,
             "total_logprob": total_logprobs,
+            "class_logprobs": all_class_logprobs,
         }
 
     def _get_logits_and_tokens(

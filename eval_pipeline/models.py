@@ -507,12 +507,13 @@ class GPT3Model(Model):
                 for token_logprob in actual_logprobs[token_index:]:
                     class_logprob += token_logprob
                 relevant_logprobs.append(class_logprob)
-
+            
+            
+            all_class_logprobs.append(relevant_logprobs)
             relevant_logprobs = torch.tensor(relevant_logprobs)
 
             loss = -F.log_softmax(relevant_logprobs, dim=-1)[example.answer_index]
             losses.append(loss.item())
-            all_class_logprobs.append(class_logprobs)
             total_logprob = torch.logsumexp(relevant_logprobs, dim=-1)
             total_logprobs.append(total_logprob.item())
 

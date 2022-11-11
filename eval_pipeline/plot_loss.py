@@ -293,6 +293,7 @@ def plot_loss(
         # always show full range of accuracies
         plt.ylim(-0.02, 1.02)
         plt.ylabel("Accuracy")
+        title = "Log plot of accuracy vs model size"
     elif task_type == "calibration_error":
         # always show full range of accuracies
         plt.ylim(-0.02, 1.02)

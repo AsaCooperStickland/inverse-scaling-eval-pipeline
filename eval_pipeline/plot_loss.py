@@ -31,6 +31,7 @@ size_dict = {
     "text-babbage-001": 1_300_000_000,
     "text-curie-001": 6_700_000_000,
     "text-davinci-001": 175_000_000_000,
+    "text-davinci-002": 175_000_000_000,
     # gpt neo sizes from their names
     "gpt-neo-125M": 125_000_000,
     "gpt-neo-1.3B": 1_300_000_000,
@@ -124,6 +125,8 @@ def plot_classification_loss(
     show: bool,
 ):
     loss_csvs = [f for f in exp_dir.glob("*.csv") if f.name != "data.csv"]
+    print(exp_dir)
+    print(loss_csvs)
     if Path(exp_dir, "data.csv").exists():
         data_df = pd.read_csv(Path(exp_dir, "data.csv"), index_col=0).reset_index(
             drop=True

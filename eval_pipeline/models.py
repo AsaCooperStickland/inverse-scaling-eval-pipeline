@@ -32,7 +32,6 @@ from eval_pipeline.openai_api import APIParameters, BaseGPT3Model, OpenAIModel, 
 OPENAI_API_BASE_URL = "https://api.openai.com/v1/engines"
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-
 # DEBUG: counting errors
 error_count = 0
 # for checking how long the input is
@@ -58,7 +57,7 @@ valid_hf_models: tuple[ValidHFModel, ...] = get_args(ValidHFModel)
 
 # NOTE: due to limitations of get_args with nested Literals, we have to call it
 # multiple times
-valid_gpt3_models: tuple[OpenAIModel, ...] = [x for li in get_args(OpenAIModel) for x in get_args(li)]  # type: ignore
+valid_gpt3_models: tuple[OpenAIModel, ...] = get_args(OpenAIModel) # [x for li in get_args(OpenAIModel) for x in get_args(li)]  # type: ignore
 
 Device = Literal["cuda:0", "cpu"]
 

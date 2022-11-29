@@ -21,6 +21,7 @@ InstructGPT3Model = Literal[
     "text-babbage-001",
     "text-curie-001",
     "text-davinci-001",
+    "text-davinci-002",
 ]
 
 OpenAIModel = Literal[BaseGPT3Model, InstructGPT3Model]
